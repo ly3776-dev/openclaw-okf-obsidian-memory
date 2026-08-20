@@ -1,0 +1,35 @@
+{
+  "id": "openclaw-okf-obsidian-memory",
+  "name": "OKF Obsidian Memory / OKF Obsidian 记忆",
+  "version": "0.2.4",
+  "description": "Capture multimodal inputs as OKF notes in an Obsidian vault, including Douyin videos. / 把多模态内容沉淀为 Obsidian vault 中的 OKF 笔记，支持抖音视频。",
+  "configSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "activation": {
+    "onStartup": true,
+    "capabilities": [
+      "tool"
+    ]
+  },
+  "contracts": {
+    "tools": [
+      "okf_obsidian_ingest",
+      "okf_obsidian_daily",
+      "okf_obsidian_recall",
+      "okf_obsidian_sqlite_index",
+      "okf_obsidian_douyin",
+      "okf_obsidian_doctor",
+      "okf_obsidian_okf_validate",
+      "okf_obsidian_ontology_validate",
+      "okf_obsidian_actions_validate",
+      "okf_obsidian_actions_list",
+      "okf_obsidian_action_update",
+      "okf_obsidian_action_execute",
+      "okf_obsidian_obsidian_views",
+      "okf_obsidian_okf_export"
+    ]
+  }
+}

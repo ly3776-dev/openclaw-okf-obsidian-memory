@@ -1,0 +1,51 @@
+{
+  "notes": [
+    {
+      "id": "amazon_ads_recap",
+      "title": "亚马逊广告复盘和 ACOS 浪费词",
+      "text": "亚马逊运营日常复盘：打开 Codex 调用 amazon ads report，汇总昨天广告花费、转化、ACOS、浪费词和否定关键词。把转化好但预算不足的词整理出来加预算，把只花钱不出单的词列入浪费词清单。这个流程来自抖音运营视频，重点是让 OpenClaw 下次能主动召回广告复盘方法。"
+    },
+    {
+      "id": "okf_memory_loop",
+      "title": "OpenClaw OKF Obsidian 记忆闭环",
+      "text": "OpenClaw 收到文字、图片、PDF、音频、视频或抖音分享后，通过 OKF Obsidian Memory skill 提炼为 OKF Markdown 笔记，写入 Obsidian vault。每日任务会用 LLM 和 ontology 图关联概念、来源、标签、实体和动作。下一次 agent 遇到相关问题时，Active Memory 通过 OpenClaw memory search 主动召回 okf-export 里的知识。"
+    },
+    {
+      "id": "paddleocr_extraction",
+      "title": "PaddleOCR PP-OCRv6 图片和 PDF 识别",
+      "text": "图片和 PDF 输入优先使用百度 PaddleOCR 的 PP-OCRv6 medium 模型抽取文字。MarkItDown 作为非 OCR 转换和 PDF fallback。这个路径用于把截图、扫描 PDF、产品图片里的文字转成可总结、可索引、可召回的 OKF 内容。"
+    },
+    {
+      "id": "palantir_ontology",
+      "title": "Palantir Ontology 风格的知识关联",
+      "text": "每日知识归纳按照 Palantir Foundry ontology 的思路组织：Object Type 描述 Concept、Source、Tag、Entity；Link Type 描述 derived_from、has_tag、mentions、similar_to、same_domain；Action Type 描述 merge_duplicate_concepts、promote_entity_note、enrich_ambiguous_concept 和 schedule_review。目标是让知识不只是笔记，而是可以被行动和召回的对象关系图。"
+    }
+  ],
+  "cases": [
+    {
+      "name": "douyin_amazon_spoken",
+      "query": "抖音里那个亚马逊运营视频，昨天广告花费和 ACOS 浪费词要怎么复盘？",
+      "expectedId": "amazon_ads_recap"
+    },
+    {
+      "name": "budget_terms_spoken",
+      "query": "哪些关键词只花钱不出单，哪些词应该加预算？",
+      "expectedId": "amazon_ads_recap"
+    },
+    {
+      "name": "active_memory_loop",
+      "query": "OpenClaw 下次怎么主动想起我存在 Obsidian vault 里的 OKF 笔记？",
+      "expectedId": "okf_memory_loop"
+    },
+    {
+      "name": "ocr_choice",
+      "query": "截图和扫描 PDF 的文字识别到底用哪个 OCR 模型？",
+      "expectedId": "paddleocr_extraction"
+    },
+    {
+      "name": "ontology_actions",
+      "query": "按照 Palantir 的本体理论，知识对象、关系和动作应该怎么连起来？",
+      "expectedId": "palantir_ontology"
+    }
+  ]
+}

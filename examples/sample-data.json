@@ -1,0 +1,5 @@
+{
+  "topic": "OKF Obsidian Memory",
+  "idea": "OpenClaw should convert raw research material into structured OKF notes and recall them later.",
+  "next": ["image extraction", "video transcription", "memory-wiki integration"]
+}

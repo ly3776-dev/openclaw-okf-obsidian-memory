@@ -1,0 +1,64 @@
+{
+  "name": "openclaw-okf-obsidian-memory",
+  "version": "0.2.4",
+  "private": true,
+  "type": "module",
+  "description": "OpenClaw skill and plugin MVP for turning multimodal inputs into OKF notes in an Obsidian vault.",
+  "main": "./plugin/native.js",
+  "openclaw": {
+    "extensions": [
+      "./plugin/native.js"
+    ]
+  },
+  "bin": {
+    "okf-obsidian": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test ./test/core.test.js ./test/process.test.js ./test/installSafety.test.js ./test/douyinResolver.test.js",
+    "test:integration:media": "node --test ./test/integration/media.integration.test.js",
+    "demo": "node ./src/cli.js ingest --input ./examples/sample-input.md --vault ./examples/vault --source-type text",
+    "daily": "node ./src/cli.js daily --vault ./examples/vault",
+    "recall": "node ./src/cli.js recall --vault ./examples/vault --query openclaw",
+    "sqlite:index": "node ./src/cli.js sqlite-index --vault ./examples/vault",
+    "ontology:validate": "node ./src/cli.js ontology-validate --vault ./examples/vault",
+    "actions:validate": "node ./src/cli.js action-validate --vault ./examples/vault",
+    "actions:list": "node ./src/cli.js action-list --vault ./examples/vault",
+    "obsidian:views": "node ./src/cli.js obsidian-views --vault ./examples/vault",
+    "okf:validate": "node ./src/cli.js okf-validate --vault ./examples/vault",
+    "okf:export": "node ./src/cli.js okf-export --vault ./examples/vault",
+    "openclaw:memory": "node ./scripts/configure_openclaw_memory.js --vault ./examples/vault --index",
+    "verify:openclaw": "node ./scripts/verify_openclaw_active_memory.js",
+    "verify:all": "node ./scripts/verify_all.js",
+    "setup:check": "node ./scripts/setup_check.js",
+    "agent:handoff": "node ./scripts/generate_agent_handoff.js",
+    "verify:installers": "node ./scripts/validate_easy_installers.js",
+    "ui:bilingual": "node ./scripts/verify_bilingual_ui.js",
+    "recall:quality": "node ./scripts/evaluate_recall_quality.js",
+    "benchmark:ontology": "node ./scripts/benchmark_ontology.js",
+    "benchmark:recall": "node ./scripts/benchmark_recall_10k.js",
+    "security:check": "node ./scripts/security_check.js",
+    "release:package": "node ./scripts/package_release.js",
+    "release:check": "node ./scripts/verify_release.js",
+    "embedding:health": "node ./scripts/check_embedding_server.js",
+    "media:prepare": "node ./scripts/run_venv_python.js ./scripts/transcribe_media.py --prepare --allow-model-download",
+    "doctor": "node ./src/cli.js doctor",
+    "douyin": "node ./src/cli.js douyin --vault ./examples/vault --url \"https://v.douyin.com/xxxxx/\"",
+    "verify:plugin": "node ./scripts/verify_plugin.js",
+    "verify:obsidian": "node ./scripts/verify_obsidian_plugin.js",
+    "verify:obsidian-cli": "node ./scripts/verify_obsidian_cli.js",
+    "obsidian:install": "node ./scripts/install_obsidian_plugin.js --vault ./examples/vault",
+    "bge:prepare": "node ./scripts/run_venv_python.js ./scripts/prepare_bge_m3.py",
+    "verify:shell": "node ./scripts/validate_shell_syntax.js",
+    "validate:m5:linux": "node ./scripts/validate_m5_linux.js",
+    "validate:m5:windows": "node ./scripts/validate_m5_windows.js",
+    "validate:m6:resilience": "node ./scripts/validate_m6_resilience.js"
+  },
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "dependencies": {
+    "openclaw": "^2026.6.9",
+    "typebox": "^1.3.0",
+    "yaml": "^2.8.1"
+  }
+}

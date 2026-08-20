@@ -1,0 +1,1 @@
+OpenClaw should be able to receive messy personal research inputs, distill them into durable OKF notes, and save them into an Obsidian vault. The knowledge should later be recalled before an agent answers related questions.

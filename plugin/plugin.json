@@ -1,0 +1,179 @@
+{
+  "name": "openclaw-okf-obsidian-memory",
+  "version": "0.2.3",
+  "description": "Capture OpenClaw inputs as OKF notes in an Obsidian vault, including Douyin videos, and recall them later. / 将 OpenClaw 输入沉淀为 Obsidian vault 中的 OKF 笔记，支持抖音视频并可后续召回。",
+  "main": "index.js",
+  "tools": [
+    {
+      "name": "okf_obsidian_ingest",
+      "description": "Convert input content into an OKF Markdown note and write it to an Obsidian vault. / 把输入内容转换为 OKF Markdown 笔记并写入 Obsidian vault。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault"],
+        "properties": {
+          "vault": { "type": "string" },
+          "text": { "type": "string" },
+          "inputPath": { "type": "string" },
+          "sourceType": { "type": "string" },
+          "title": { "type": "string" },
+          "useWeb": { "type": "boolean" }
+        }
+      }
+    },
+    {
+      "name": "okf_obsidian_daily",
+      "description": "Run daily linking and synthesis over the OKF notes in an Obsidian vault. / 对 Obsidian vault 中的 OKF 笔记执行每日关联和归纳。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault"],
+        "properties": {
+          "vault": { "type": "string" },
+          "useLlm": { "type": "boolean" }
+        }
+      }
+    },
+    {
+      "name": "okf_obsidian_recall",
+      "description": "Recall related OKF notes from an Obsidian vault using lexical, SQLite, ontology, and vector signals. / 根据查询用词法、SQLite、ontology 和向量信号从 Obsidian vault 召回相关 OKF 笔记。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault", "query"],
+        "properties": {
+          "vault": { "type": "string" },
+          "query": { "type": "string" },
+          "limit": { "type": "number" }
+        }
+      }
+    },
+    {
+      "name": "okf_obsidian_sqlite_index",
+      "description": "Rebuild the derived SQLite/FTS memory index for faster large-vault recall while keeping Markdown as the source of truth. / 重建派生 SQLite/FTS 记忆索引，加速大 vault 召回，同时 Markdown 仍是事实来源。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault"],
+        "properties": {
+          "vault": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "okf_obsidian_douyin",
+      "description": "Download a Douyin video, transcribe it, and write it as an OKF Markdown note in an Obsidian vault. / 下载抖音视频、转写内容，并写入 Obsidian vault 的 OKF Markdown 笔记。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault"],
+        "properties": {
+          "vault": { "type": "string" },
+          "url": { "type": "string" },
+          "text": { "type": "string" },
+          "input": { "type": "string" },
+          "outputDir": { "type": "string" },
+          "title": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "okf_obsidian_doctor",
+      "description": "Check local extractor availability, including MarkItDown, PaddleOCR, FunASR, and faster-whisper. / 检查本地提取器可用性，包括 MarkItDown、PaddleOCR、FunASR 和 faster-whisper。",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "okf_obsidian_okf_validate",
+      "description": "Validate concept notes against strict OKF v0.1 constraints. / 按严格 OKF v0.1 约束校验概念笔记。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault"],
+        "properties": {
+          "vault": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "okf_obsidian_ontology_validate",
+      "description": "Validate the Palantir-style ontology graph schema, object/link/action types, references, and confidence values. / 校验 Palantir 风格 ontology 图的 schema、对象/关系/动作类型、引用和置信度。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault"],
+        "properties": {
+          "vault": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "okf_obsidian_actions_validate",
+      "description": "Validate the lifecycle action queue generated from ontology actions. / 校验由 ontology actions 生成的生命周期动作队列。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault"],
+        "properties": {
+          "vault": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "okf_obsidian_actions_list",
+      "description": "List suggested ontology lifecycle actions and optionally filter by status. / 列出建议的 ontology 生命周期动作，并可按状态过滤。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault"],
+        "properties": {
+          "vault": { "type": "string" },
+          "status": { "type": "string" },
+          "limit": { "type": "number" }
+        }
+      }
+    },
+    {
+      "name": "okf_obsidian_action_update",
+      "description": "Update one ontology action status and append a lifecycle audit note. / 更新单条 ontology 动作状态，并追加生命周期审计备注。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault", "id", "status"],
+        "properties": {
+          "vault": { "type": "string" },
+          "id": { "type": "string" },
+          "status": { "type": "string" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "okf_obsidian_action_execute",
+      "description": "Create a safe lifecycle artifact for one ontology action and advance its status. / 为单条 ontology 动作创建安全的生命周期产物并推进状态。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault", "id"],
+        "properties": {
+          "vault": { "type": "string" },
+          "id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "okf_obsidian_obsidian_views",
+      "description": "Refresh Obsidian-native ontology Canvas and Bases views for the vault. / 刷新 vault 中的 Obsidian 原生 ontology Canvas 和 Bases 视图。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault"],
+        "properties": {
+          "vault": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "okf_obsidian_okf_export",
+      "description": "Export concept notes into a strict OKF v0.1 Markdown bundle. / 把概念笔记导出为严格 OKF v0.1 Markdown 包。",
+      "parameters": {
+        "type": "object",
+        "required": ["vault"],
+        "properties": {
+          "vault": { "type": "string" },
+          "outputDir": { "type": "string" }
+        }
+      }
+    }
+  ]
+}

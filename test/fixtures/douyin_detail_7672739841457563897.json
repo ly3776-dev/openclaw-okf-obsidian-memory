@@ -1,0 +1,27 @@
+{
+  "_fixture_note": "Sanitized subset captured from Douyin's official web detail response on 2026-08-20.",
+  "status_code": 0,
+  "aweme_detail": {
+    "aweme_id": "7672739841457563897",
+    "desc": "这个拌粉教程是认真的，开店可以照般的配方，喜欢的一定去试试#南昌拌粉#美食 #嗦粉",
+    "aweme_type": 0,
+    "video": {
+      "duration": 204667,
+      "width": 1080,
+      "height": 1920,
+      "play_addr_h264": {
+        "uri": "v2800fgi0000d9tgmdnog65hds0tsiug",
+        "url_list": [
+          "https://v11-weba.douyinvod.com/fixture/video/tos/cn/progressive.mp4?mime_type=video_mp4",
+          "https://v26-web.douyinvod.com/fixture/video/tos/cn/progressive.mp4?mime_type=video_mp4",
+          "https://www.douyin.com/aweme/v1/play/?video_id=fixture"
+        ]
+      },
+      "play_addr": {
+        "url_list": [
+          "https://v11-weba.douyinvod.com/fixture/video/tos/cn/progressive.mp4?mime_type=video_mp4"
+        ]
+      }
+    }
+  }
+}

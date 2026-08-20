@@ -1,0 +1,10 @@
+{
+  "id": "okf-obsidian-memory",
+  "name": "OKF Obsidian Memory",
+  "version": "0.2.4",
+  "minAppVersion": "1.5.0",
+  "description": "从 Obsidian 运行 OKF 每日归纳、召回维护与导出 / Run OKF daily synthesis, recall maintenance, and export from Obsidian.",
+  "author": "OpenClaw OKF Obsidian Memory",
+  "authorUrl": "https://github.com/",
+  "isDesktopOnly": true
+}
