@@ -249,11 +249,13 @@ node ./src/cli.js obsidian-views --vault "D:\Obsidian\MyVault"
 
 The export is written to `<Vault>/okf-export/`. It includes `index.md` and `log.md`, avoids Obsidian wiki links, and validates concept files for YAML frontmatter plus non-empty `type`.
 
-Audio and video transcription uses a configured local FunASR model first, with a locally cached `faster-whisper` model as fallback. Douyin links are downloaded by the project-local downloader in `scripts/douyin_download.py`, then ingested as video. The downloader keeps the legacy page parser as a fast path and falls back to a temporary local Chrome/Edge/Chromium session that captures Douyin's official signed detail response; it does not submit links to a third-party parser:
+Audio and video transcription uses a configured local FunASR model first, with a locally cached `faster-whisper` model as fallback. Douyin links are downloaded by the project-local downloader in `scripts/douyin_download.py`, then ingested as video. The downloader keeps the legacy page parser as a fast path, then uses an HTTP-only resolver with A-Bogus signing, a visitor cookie, and TLS fingerprint impersonation. It does not install or launch a browser and does not submit links to a third-party parser. A local browser resolver remains available only as an explicitly enabled recovery path:
 
 ```powershell
 node ./src/cli.js douyin --url "https://v.douyin.com/xxxxx/" --vault "D:\Obsidian\MyVault"
 ```
+
+The browserless path requires the pinned `curl-cffi` and `gmssl` packages from `requirements.txt`. To opt into the old browser recovery path on a machine that already has Chromium, set `OKF_DOUYIN_BROWSER_FALLBACK=1`.
 
 In mainland China, FunASR is the preferred path because its models and tooling are generally friendlier to the local network. Model downloads belong to install/doctor preparation, never to formal ingest. Put a local faster-whisper model directory on disk and set:
 

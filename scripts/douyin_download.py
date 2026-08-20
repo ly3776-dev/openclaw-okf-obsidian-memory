@@ -10,7 +10,9 @@ Supported input:
 
 import json
 import os
+import random
 import re
+import string
 import subprocess
 import sys
 import urllib.error
@@ -18,7 +20,11 @@ import urllib.parse
 import urllib.request
 
 MOBILE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
+DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0"
 OFFICIAL_VIDEO_HOST_SUFFIXES = (".douyinvod.com", ".douyin.com", ".snssdk.com")
+DETAIL_URL = "https://www.douyin.com/aweme/v1/web/aweme/detail/"
+TTWID_URL = "https://ttwid.bytedance.com/ttwid/union/register/"
+TTWID_BODY = '{"region":"cn","aid":1768,"needFid":false,"service":"www.ixigua.com","migrate_info":{"ticket":"","source":"node"},"cbUrlProtocol":"https","union":true}'
 
 
 def extract_url(text: str) -> str:
@@ -82,6 +88,167 @@ def get_legacy_play_uri(video_id: str) -> tuple[str, str]:
     return uri, title
 
 
+def get_http_play_urls(video_id: str) -> tuple[list[str], str, dict]:
+    """Resolve a public Douyin post without launching a browser."""
+    try:
+        from curl_cffi import requests as curl_requests
+        from vendor.f2_abogus import ABogus, BrowserFingerprintGenerator
+    except ImportError as error:
+        raise RuntimeError(
+            "Browserless Douyin resolver dependencies are missing; install requirements.txt "
+            "(curl-cffi and gmssl)"
+        ) from error
+
+    timeout = positive_integer(os.environ.get("OKF_DOUYIN_HTTP_TIMEOUT_SECONDS"), 30)
+    impersonate = os.environ.get("OKF_DOUYIN_TLS_IMPERSONATE", "chrome").strip() or "chrome"
+    errors = []
+    for attempt in range(1, 3):
+        session = None
+        try:
+            session = curl_requests.Session(impersonate=impersonate)
+            headers = {
+                "User-Agent": DESKTOP_UA,
+                "Referer": "https://www.douyin.com/",
+            }
+            ttwid_response = session.post(
+                TTWID_URL,
+                data=TTWID_BODY,
+                headers={**headers, "Content-Type": "application/json; charset=utf-8"},
+                timeout=timeout,
+            )
+            ttwid_response.raise_for_status()
+            ttwid = ttwid_response.cookies.get("ttwid")
+            if not ttwid:
+                raise RuntimeError("Douyin did not issue a ttwid visitor cookie")
+            session.cookies.set("ttwid", ttwid, domain=".douyin.com")
+
+            # Prime Douyin's short-lived anti-bot cookie using the same TLS session.
+            page_response = session.get(
+                f"https://www.douyin.com/video/{video_id}",
+                headers=headers,
+                timeout=timeout,
+            )
+            page_response.raise_for_status()
+
+            detail_response = session.get(
+                build_signed_detail_url(video_id, ABogus, BrowserFingerprintGenerator),
+                headers=headers,
+                timeout=timeout,
+            )
+            detail_response.raise_for_status()
+            if not detail_response.content:
+                raise RuntimeError("Douyin detail API returned an empty anti-bot response")
+            result = parse_detail_response(detail_response.json(), video_id)
+            return result["play_urls"], result["title"], result
+        except Exception as error:
+            errors.append(f"attempt {attempt}: {error}")
+        finally:
+            try:
+                if session is not None:
+                    session.close()
+            except Exception:
+                pass
+    raise RuntimeError("Browserless Douyin detail resolver failed: " + " | ".join(errors))
+
+
+def build_signed_detail_url(video_id: str, abogus_class, fingerprint_class) -> str:
+    params = {
+        "device_platform": "webapp",
+        "aid": "6383",
+        "channel": "channel_pc_web",
+        "pc_client_type": 1,
+        "publish_video_strategy_type": 2,
+        "pc_libra_divert": "Windows",
+        "version_code": "290100",
+        "version_name": "29.1.0",
+        "cookie_enabled": "true",
+        "screen_width": 1920,
+        "screen_height": 1080,
+        "browser_language": "zh-CN",
+        "browser_platform": "Win32",
+        "browser_name": "Edge",
+        "browser_version": "130.0.0.0",
+        "browser_online": "true",
+        "engine_name": "Blink",
+        "engine_version": "130.0.0.0",
+        "os_name": "Windows",
+        "os_version": "10",
+        "cpu_core_num": 12,
+        "device_memory": 8,
+        "platform": "PC",
+        "downlink": 10,
+        "effective_type": "4g",
+        "round_trip_time": 100,
+        "msToken": "".join(random.choices(string.ascii_letters + string.digits + "-_", k=126)) + "==",
+        "aweme_id": video_id,
+    }
+    query = "&".join(f"{key}={value}" for key, value in params.items())
+    fingerprint = fingerprint_class.generate_fingerprint("Edge")
+    signature = abogus_class(fp=fingerprint, user_agent=DESKTOP_UA).generate_abogus(query, "")[1]
+    return f"{DETAIL_URL}?{query}&a_bogus={signature}"
+
+
+def parse_detail_response(payload: dict, expected_video_id: str) -> dict:
+    if not isinstance(payload, dict):
+        raise ValueError("Douyin detail API returned an invalid response")
+    if int(payload.get("status_code") or 0) != 0:
+        raise ValueError(f"Douyin detail API returned status_code={payload.get('status_code')}")
+    detail = payload.get("aweme_detail")
+    if not isinstance(detail, dict):
+        raise ValueError("Douyin detail API did not return aweme_detail")
+    video_id = str(detail.get("aweme_id") or "")
+    if expected_video_id and video_id != str(expected_video_id):
+        raise ValueError(
+            f"Douyin detail video id mismatch: expected {expected_video_id}, got {video_id or 'empty'}"
+        )
+    play_urls = select_progressive_urls(detail.get("video"))
+    if not play_urls:
+        raise ValueError(
+            f"No progressive MP4 URL found; aweme_type={detail.get('aweme_type')}. "
+            "Image posts are not supported."
+        )
+    video = detail.get("video") or {}
+    return {
+        "source": "douyin-official-http-api",
+        "video_id": video_id,
+        "title": str(detail.get("desc") or video_id)[:200],
+        "play_url": play_urls[0],
+        "play_urls": play_urls,
+        "duration_ms": finite_number(video.get("duration")),
+        "width": finite_number(video.get("width")),
+        "height": finite_number(video.get("height")),
+    }
+
+
+def select_progressive_urls(video) -> list[str]:
+    if not isinstance(video, dict):
+        return []
+    result = []
+    for key in ("play_addr_h264", "play_addr", "play_addr_265"):
+        address = video.get(key)
+        if not isinstance(address, dict):
+            continue
+        for candidate in address.get("url_list") or []:
+            if is_official_progressive_url(candidate) and candidate not in result:
+                result.append(candidate)
+    return result
+
+
+def is_official_progressive_url(candidate) -> bool:
+    try:
+        parsed = urllib.parse.urlparse(str(candidate))
+        if parsed.scheme != "https" or re.search(r"/media-(?:video|audio)-", parsed.path, re.IGNORECASE):
+            return False
+        host = (parsed.hostname or "").lower()
+        return any(host == suffix[1:] or host.endswith(suffix) for suffix in OFFICIAL_VIDEO_HOST_SUFFIXES)
+    except Exception:
+        return False
+
+
+def finite_number(value):
+    return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+
+
 def get_browser_play_urls(video_id: str) -> tuple[list[str], str, dict]:
     script = os.environ.get(
         "OKF_DOUYIN_BROWSER_RESOLVER_SCRIPT",
@@ -138,11 +305,22 @@ def get_play_source(video_id: str) -> tuple[list[str], str, str, dict]:
         legacy_error = error
 
     try:
+        play_urls, title, metadata = get_http_play_urls(video_id)
+        return play_urls, title, "douyin-official-http-api", metadata
+    except Exception as http_error:
+        if not truthy(os.environ.get("OKF_DOUYIN_BROWSER_FALLBACK")):
+            raise RuntimeError(
+                f"Legacy Douyin metadata failed ({legacy_error}); browserless HTTP resolver failed "
+                f"({http_error}). Optional browser fallback is disabled."
+            ) from http_error
+
+    try:
         play_urls, title, metadata = get_browser_play_urls(video_id)
         return play_urls, title, "douyin-official-browser-api", metadata
     except Exception as browser_error:
         raise RuntimeError(
-            f"Legacy Douyin metadata failed ({legacy_error}); browser fallback failed ({browser_error})"
+            f"Legacy Douyin metadata failed ({legacy_error}); browserless HTTP resolver failed "
+            f"({http_error}); optional browser fallback failed ({browser_error})"
         ) from browser_error
 
 
@@ -233,6 +411,10 @@ def positive_integer(value, fallback: int) -> int:
         return parsed if parsed > 0 else fallback
     except ValueError:
         return fallback
+
+
+def truthy(value) -> bool:
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def sanitize_filename(name: str) -> str:

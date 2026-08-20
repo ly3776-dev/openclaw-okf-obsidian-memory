@@ -273,7 +273,7 @@ node ./src/cli.js okf-export --vault ./examples/vault
 
 ## Douyin
 
-Douyin download logic is project-local in `scripts/douyin_download.py`; it does not depend on a user-specific Codex/OpenClaw skill path. It first tries the legacy embedded page data, then uses `scripts/douyin_browser_resolve.js` to capture Douyin's official signed detail response in a temporary local Chromium session. The link is not sent to a third-party parsing service. The CLI command is:
+Douyin download logic is project-local in `scripts/douyin_download.py`; it does not depend on a user-specific Codex/OpenClaw skill path. It first tries the legacy embedded page data, then uses an HTTP-only resolver with A-Bogus signing, a visitor cookie, and `curl-cffi` TLS fingerprint impersonation. No Chrome, Edge, Chromium, or Playwright installation is required, and the link is not sent to a third-party parsing service. The CLI command is:
 
 ```powershell
 node ./src/cli.js douyin --url "https://v.douyin.com/xxxxx/" --vault "D:\Obsidian\MyVault"
@@ -285,10 +285,17 @@ For tests or special deployments, override the downloader script:
 $env:OKF_DOUYIN_DOWNLOADER_SCRIPT="D:\path\to\custom_downloader.py"
 ```
 
-The current official-page fallback needs Chrome, Edge, Chromium, or a Playwright-managed Chromium build. Browser discovery is automatic. To select one explicitly:
+`curl-cffi` and `gmssl` are pinned in `requirements.txt` and installed by the normal bootstrap. The old local-browser resolver is retained only as an opt-in recovery path. To enable it on a machine that already has Chromium:
 
 ```powershell
+$env:OKF_DOUYIN_BROWSER_FALLBACK="1"
 $env:OKF_DOUYIN_BROWSER_EXECUTABLE="C:\Program Files\Google\Chrome\Application\chrome.exe"
+```
+
+For slow NAS connections, the HTTP resolver timeout can be adjusted independently:
+
+```powershell
+$env:OKF_DOUYIN_HTTP_TIMEOUT_SECONDS="45"
 ```
 
 ## Migration Notes

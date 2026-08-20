@@ -47,7 +47,10 @@ test("prepared OpenClaw plugin includes and can load both Douyin runtime scripts
 
   assert.equal(existsSync(pythonDownloader), true, "prepared plugin omitted douyin_download.py");
   assert.equal(existsSync(browserResolver), true, "prepared plugin omitted douyin_browser_resolve.js");
-  assert.match(await readFile(pythonDownloader, "utf8"), /get_browser_play_urls/);
+  const downloaderSource = await readFile(pythonDownloader, "utf8");
+  assert.match(downloaderSource, /get_http_play_urls/);
+  assert.match(downloaderSource, /douyin-official-http-api/);
+  assert.match(downloaderSource, /OKF_DOUYIN_BROWSER_FALLBACK/);
 
   const installedModule = await import(`${pathToFileURL(browserResolver).href}?test=${Date.now()}`);
   const fixture = JSON.parse(await readFile(fixturePath, "utf8"));

@@ -1,7 +1,7 @@
 {
   "id": "openclaw-okf-obsidian-memory",
   "name": "OKF Obsidian Memory / OKF Obsidian 记忆",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Capture multimodal inputs as OKF notes in an Obsidian vault, including Douyin videos. / 把多模态内容沉淀为 Obsidian vault 中的 OKF 笔记，支持抖音视频。",
   "configSchema": {
     "type": "object",

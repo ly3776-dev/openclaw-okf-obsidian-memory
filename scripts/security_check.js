@@ -6,6 +6,7 @@ const ROOT = path.resolve(parseArgs(process.argv.slice(2)).root || process.cwd()
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 const SKIP_DIRS = new Set([
   ".git",
+  ".tmp",
   "node_modules",
   "__pycache__",
   ".pytest_cache",

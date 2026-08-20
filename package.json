@@ -1,6 +1,6 @@
 {
   "name": "openclaw-okf-obsidian-memory",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "private": true,
   "type": "module",
   "description": "OpenClaw skill and plugin MVP for turning multimodal inputs into OKF notes in an Obsidian vault.",
